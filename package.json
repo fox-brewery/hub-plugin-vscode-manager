@@ -1,0 +1,24 @@
+{
+	"name": "mgr",
+	"version": "0.1.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "node -r jiti/register mgr.ts"
+	},
+	"keywords": [],
+	"author": "Edwin Kofler <edwin@kofler.dev> (https://edwinkofler.com/)",
+	"license": "MPL-2.0",
+	"dependencies": {
+		"chokidar": "^3.5.3",
+		"jsonc-parser": "^3.2.0",
+		"lodash": "^4.17.21"
+	},
+	"devDependencies": {
+		"@tsconfig/node20": "^20.1.0",
+		"@types/lodash": "^4.14.195",
+		"@types/node": "^20.4.2",
+		"jiti": "^1.19.1",
+		"pkg": "^5.8.1"
+	}
+}
