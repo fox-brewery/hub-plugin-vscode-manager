@@ -12,37 +12,46 @@ import {
 import { getProfiles } from './profiles'
 import { ignoreWatch } from '../watch-data'
 
-export async function updateSettings(inputFile: string) {
-	if (!(await fileExists(inputFile))) {
-		console.log('Creating settings... ' + inputFile)
+export async function createSettingsFile(filepath: string) {
+	console.log('Creating settings... ' + filepath)
 
-		ignoreWatch.value = true
-		await createNewSettingsFile(inputFile)
-		const newInputFile = await (async () => {
-			// newInput file some other profile that's not the new one
-			const location = getLocationFromPath(inputFile)
-			let anyProfile = (await getProfiles())[0]
-			if (anyProfile.location === location) {
-				anyProfile = (await getProfiles())[1]
-			}
+	ignoreWatch.value = true
+	await fs.writeFile(
+		filepath,
+		`{
+	//section-start: custom
+	//section-end: custom
 
-			const anyInputFile = path.join(
-				vars.profileDir,
-				anyProfile.location,
-				'settings.json',
-			)
+	//section-start: shared
+	//section-end: shared
+	"__hack": ""
+}`,
+	)
+	const newInputFile = await (async () => {
+		// newInput file some other profile that's not the new one
+		const location = getLocationFromPath(filepath)
+		let anyProfile = (await getProfiles())[0]
+		if (anyProfile.location === location) {
+			anyProfile = (await getProfiles())[1]
+		}
 
-			// Other settings.json has to exist, or we go in infinite loop
-			if (!(await fileExists(anyInputFile))) {
-				throw new Error(`File should exist: ${anyInputFile}`)
-			}
-			return anyInputFile
-		})()
-		await writeSettingsOther(newInputFile, inputFile)
-		ignoreWatch.value = false
+		const anyInputFile = path.join(
+			vars.profileDir,
+			anyProfile.location,
+			'settings.json',
+		)
 
-		return
-	}
+		// Other settings.json has to exist, or we go in infinite loop
+		if (!(await fileExists(anyInputFile))) {
+			throw new Error(`File should exist: ${anyInputFile}`)
+		}
+		return anyInputFile
+	})()
+	await writeSettingsOther(newInputFile, filepath)
+	ignoreWatch.value = false
+}
+
+export async function updateSettingsFile(inputFile: string) {
 	console.log('Writing settings...')
 
 	const location = getLocationFromPath(inputFile)
@@ -76,7 +85,7 @@ export async function updateSettings(inputFile: string) {
 /**
  * This only copies everything after the "shared" section.
  */
-export async function writeSettingsCurrent(inputFile: string): Promise<void> {
+async function writeSettingsCurrent(inputFile: string): Promise<void> {
 	const inputContent = await fs.readFile(inputFile, 'utf-8')
 	const parsedInput = await parseSettingsContent(inputContent)
 	if (!parsedInput) {
@@ -110,24 +119,10 @@ export async function writeSettingsCurrent(inputFile: string): Promise<void> {
 	await fs.writeFile(inputFile, newOutputContent)
 }
 
-export async function createNewSettingsFile(filepath: string) {
-	await fs.writeFile(
-		filepath,
-		`{
-	//section-start: custom
-	//section-end: custom
-
-	//section-start: shared
-	//section-end: shared
-	"__hack": ""
-}`,
-	)
-}
-
 /**
  * @description This only copies the stuff in the "shared" section.
  */
-export async function writeSettingsOther(
+async function writeSettingsOther(
 	inputFile: string,
 	outputFile: string,
 ): Promise<void> {
