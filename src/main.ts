@@ -6,9 +6,13 @@ import * as chokidar from 'chokidar'
 import _ from 'lodash'
 
 import * as vars from './utils/vars'
-import { fileExists, normalizePath } from './utils/utils'
+import { fileExists, normalizePath, sendNotification } from './utils/utils'
 import { ignoreWatch } from './watch-data'
-import { createSettingsFile, updateSettingsFile } from './utils/settings'
+import {
+	createSettingsFile,
+	parseSettingsContent2,
+	updateSettingsFile,
+} from './utils/settings'
 import {
 	createKeybindingsFile,
 	updateKeybindingsFile,
@@ -58,6 +62,10 @@ Options:
 		process.exit(1)
 	}
 }
+;(async () => {
+	const p = '/home/edwin/.config/Code/User/profiles/-89c1b14/settings.json'
+	parseSettingsContent2(await fs.readFile(p, 'utf-8'))
+})()
 
 function commandStartServer() {
 	const DEBOUNCE_TIME_MILLISECONDS = 500
@@ -92,7 +100,7 @@ function commandStartServer() {
 				}
 			}
 		})
-		.on('change', (filepath) => {
+		.on('change', async (filepath) => {
 			if (
 				filepath.endsWith('.vscdb') ||
 				filepath.endsWith('.vscdb-journal') ||
@@ -107,8 +115,10 @@ function commandStartServer() {
 
 			if (filepath.endsWith('keybindings.json')) {
 				throttledUpdateKeybindings(filepath)
+				await sendNotification('Updated VSCode Keybindings')
 			} else if (filepath.endsWith('settings.json')) {
 				throttledUpdateSettings(filepath)
+				await sendNotification('Updated VSCode Settings')
 			}
 		})
 		.on('ready', () => {

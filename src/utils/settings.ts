@@ -78,8 +78,6 @@ export async function updateSettingsFile(inputFile: string) {
 		}
 	}
 	ignoreWatch.value = false
-
-	await sendNotification('Updated VSCode Settings')
 }
 
 /**
@@ -129,6 +127,8 @@ async function writeSettingsOther(
 	const inputContent = await fs.readFile(inputFile, 'utf-8')
 	const outputContent = await fs.readFile(outputFile, 'utf-8')
 
+	const inputParsed = parseSettingsContent2(inputContent)
+
 	const parsedInput = await parseSettingsContent(inputContent)
 	const parsedOutput = await parseSettingsContent(outputContent)
 
@@ -163,9 +163,39 @@ type Parsed = {
 	afterSharedText: string
 }
 
-export async function parseSettingsContent(
-	content: string,
-): Promise<Parsed | null> {
+type Section = {
+	name: string
+	content: string
+}
+
+type Parsed2 = {
+	initialText: string
+	sections: Section[]
+}
+
+export function parseSettingsContent2(content: string): Parsed2 | null {
+	const firstSection = content.indexOf('//section-start')
+	const initialText = content.slice(0)
+
+	const result =
+		/\/\/section-(?<sectionType>start|end): (?<sectionName>.*?)\n/gu.exec(
+			content,
+		)
+
+	if (result) {
+		// console.log()
+		let a = result.map((item) => {
+			console.log(item)
+			let s = item
+			delete s.input
+			return s
+		})
+		// console.log(a)
+		// console.log(result.length)
+	}
+}
+
+async function parseSettingsContent(content: string): Promise<Parsed | null> {
 	const customStartIndex = content.indexOf('//section-start: custom')
 	const customEndIndex = content.indexOf('//section-end: custom')
 	const sharedStartIndex = content.indexOf('//section-start: shared')
@@ -203,7 +233,7 @@ export async function parseSettingsContent(
 	}
 }
 
-export function stringifySettingsContent(parsed: Parsed) {
+function stringifySettingsContent(parsed: Parsed) {
 	return (
 		parsed.beforeCustomText +
 		parsed.customText +

@@ -8,12 +8,7 @@ const exec = util.promisify(child_process.exec)
 import * as vars from './vars'
 import { getProfiles } from './profiles'
 import { ignoreWatch } from '../watch-data'
-import {
-	assertValidJson,
-	sendNotification,
-	getLocationFromPath,
-	fileExists,
-} from './utils'
+import { assertValidJson, getLocationFromPath, fileExists } from './utils'
 
 export async function createKeybindingsFile(filepath: string) {
 	console.log('Creating keybindings... ' + filepath)
@@ -69,6 +64,4 @@ export async function updateKeybindingsFile(inputFile: string) {
 		}
 	}
 	ignoreWatch.value = false
-
-	await sendNotification('Updated VSCode Keybindings')
 }
